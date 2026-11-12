@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Expired Products{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4faff;
+  }
+
+  .expired-container {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(42, 143, 247, 0.08);
+  }
+
+  .expired-header {
+    font-size: 26px;
+    font-weight: 600;
+    color: #2A8FF7;
+    margin-bottom: 25px;
+  }
+
+  .expired-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .expired-table thead {
+    background-color: #EDFEFA;
+    border-bottom: 2px solid #2A8FF7;
+  }
+
+  .expired-table th,
+  .expired-table td {
+    text-align: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2ecf8;
+    font-size: 14px;
+  }
+
+  .expired-table th {
+    color: #2A8FF7;
+    font-weight: 600;
+  }
+
+  .expired-table td {
+    color: #333;
+  }
+
+  .expired-table td.stock {
+    font-weight: bold;
+    color: red;
+  }
+
+  .expired-table td.expired {
+    color: red;
+    font-weight: 600;
+  }
+
+  .expired-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .expired-table tr:hover {
+    background-color: #f0faff;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+    font-size: 16px;
+  }
+
+</style>
+
+<div class="expired-container">
+  <h2 class="expired-header">❌ Expired Products</h2>
+
+  <table class="expired-table">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Product Name</th>
+        <th>Batch No</th>
+        <th>box stock</th>
+        <th>strip stock</th>
+        <th>piece Stock</th>
+        <th>Expiry Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ product.name }}</td>
+        <td>{{ product.batch_no }}</td> <!-- ✅ Correct field name -->
+        <td class="stock">{{ product.box_stock }}</td>
+        <td class="stock">{{ product.strip_stock }}</td>
+        <td class="stock">{{ product.piece_stock }} pieces</td>
+        <td class="expired">{{ product.expiry_date }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="empty-message">✅ No expired products found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

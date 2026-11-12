@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Out of Stock Products{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4faff;
+  }
+
+  .outstock-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(42, 143, 247, 0.08);
+  }
+
+  .outstock-header {
+    font-size: 26px;
+    font-weight: 600;
+    color: #2A8FF7;
+    margin-bottom: 25px;
+  }
+
+  .outstock-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .outstock-table thead {
+    background-color: #EDFEFA;
+    border-bottom: 2px solid #2A8FF7;
+  }
+
+  .outstock-table th,
+  .outstock-table td {
+    text-align: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2ecf8;
+  }
+
+  .outstock-table th {
+    color: #2A8FF7;
+    font-weight: 600;
+  }
+
+  .outstock-table td {
+    color: #333;
+  }
+
+  .outstock-table td.out {
+    color: red;
+    font-weight: 600;
+  }
+
+  .outstock-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .outstock-table tr:hover {
+    background-color: #f0faff;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+    font-size: 16px;
+  }
+
+  .stock-input {
+    width: 60px;
+    text-align: center;
+  }
+
+  .stock-form button {
+    background-color: transparent;
+    border: none;
+    color: #2A8FF7;
+    cursor: pointer;
+    font-size: 18px;
+  }
+</style>
+
+<div class="outstock-container">
+  <h2 class="outstock-header">🚫 Out of Stock Products</h2>
+
+  <table class="outstock-table">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Product Name</th>
+        <th>Batch No</th>
+        <th>MRP (₹)</th>
+        <th>Update Stock</th>
+        <th>Expiry Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ product.name }}</td>
+        <td>{{ product.batch_no }}</td>
+        <td>₹{{ product.mrp }}</td>
+        <td>
+          <form method="post" action="{% url 'update_stock' product.id %}">
+              {% csrf_token %}
+
+              <select name="stock_type" class="form-select">
+                  <option value="box">Box</option>
+                  <option value="strip">Strip</option>
+                  <option value="piece">Piece</option>
+              </select>
+
+              <input type="number" name="stock" min="0" class="stock-input" />
+
+              <button type="submit" class="btn btn-success btn-sm">Update</button>
+          </form>
+
+        </td>
+        <td>{{ product.expiry_date }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="empty-message">✅ All products are in stock.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

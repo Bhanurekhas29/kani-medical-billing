@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}Edit Invoice{% endblock %}
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fa;
+  }
+  .billing-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border: 2px solid #2A8FF7;
+    max-width: 1000px;
+    margin: 40px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding-right: 30px;
+    padding-bottom: 40px;
+  }
+  .section-box {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2A8FF7;
+    display: flex;
+    align-items: center;
+  }
+  .section-title i {
+    margin-right: 10px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .form-row-split {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .form-half {
+    flex: 1;
+    min-width: 280px;
+  }
+  .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    font-weight: 600;
+    width: 150px;
+    margin-right: 10px;
+    color: #000;
+    white-space: nowrap;
+  }
+  .form-group label.required::after {
+    content: ' *';
+    color: red;
+    font-weight: bold;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #2A8FF7;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
+  }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #2A8FF7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(42, 143, 247, 0.2);
+  }
+  .billing-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #EDFEFA;
+    margin: 25px 30px 40px 25px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #2A8FF7;
+  }
+  .billing-table thead {
+    background-color: #2A8FF7;
+    color: white;
+    font-size: 15px;
+  }
+  .billing-table th,
+  .billing-table td {
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .total-row {
+    font-weight: bold;
+    font-size: 16px;
+    background: #F4FAFF;
+  }
+  .generate-btn {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #2A8FF7;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(42, 143, 247, 0.3);
+  }
+</style>
+<div class="billing-container">
+  <form method="POST" action="{% url 'edit_invoice' invoice.id %}">
+    {% csrf_token %}
+    <div class="section-box">
+      <div class="section-title"><i class="fas fa-file-invoice"></i> Invoice Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="required">Invoice Date:</label>
+          <input type="date" name="invoice_date" value="{{ invoice.invoice_date|date:'Y-m-d' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Invoice Number:</label>
+          <input type="text" name="invoice_number" value="{{ invoice.invoice_number }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">D.L NO:</label>
+          <input type="text" name="dl_no" value="{{ invoice.dl_no }}" required>
+        </div>
+        <!-- <div class="form-group">
+          <label class="required">License No:</label>
+          <input type="text" name="license_no" value="{{ invoice.license_no }}" required>
+        </div> -->
+      </div>
+    </div>
+    <div class="form-row-split">
+      <div class="form-half section-box">
+        <div class="section-title"><i class="fas fa-user-tie"></i> Bill From</div>
+        <div class="form-group">
+          <label class="required">Name:</label>
+          <input type="text" name="from_name" value="{{ invoice.from_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Phone:</label>
+          <input type="tel" name="from_phone" value="{{ invoice.from_phone }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Address:</label>
+          <textarea name="from_address" required>{{ invoice.from_address }}</textarea>
+        </div>
+      </div>
+      <div class="form-half section-box">
+        <div class="section-title"><i class="fas fa-user"></i> Bill To</div>
+        <div class="form-group">
+          <label class="required">Customer Name:</label>
+          <input type="text" name="to_name" value="{{ invoice.to_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Phone:</label>
+          <input type="tel" name="to_phone" value="{{ invoice.to_phone }}" required>
+        </div>
+        <div class="form-group">
+          <label class="required">Address:</label>
+          <textarea name="to_address" required>{{ invoice.to_address }}</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="section-title"><i class="fas fa-shopping-cart"></i> Items</div>
+    <table class="billing-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Item</th>
+          <th>Batch</th>
+          <th>MRP</th>
+          <th>Qty</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in invoice_items %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.batch_no }}</td>
+          <td><input type="number" class="mrp-input" value="{{ item.mrp }}" readonly></td>
+          <td><input type="number" class="qty-input" name="quantity_{{ item.id }}" value="{{ item.quantity }}" required min="1"></td>
+          <td class="total-cell">{{ item.subtotal }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="total-row">
+          <td colspan="4" style="text-align: right;"><strong>Grand Total</strong></td>
+          <td id="total-quantity">{{ total_quantity }}</td>
+          <td id="grand-total">₹{{ total }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="submit" class="generate-btn"><i class="fas fa-save"></i> Update Invoice</button>
+  </form>
+</div>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+  function updateTotals() {
+    let rows = document.querySelectorAll('tbody tr');
+    let grandTotal = 0;
+    let totalQty = 0;
+    rows.forEach(row => {
+      const mrpInput = row.querySelector('.mrp-input');
+      const qtyInput = row.querySelector('.qty-input');
+      if (!mrpInput || !qtyInput) return;
+      const mrp = parseFloat(mrpInput.value) || 0;
+      const qty = parseInt(qtyInput.value) || 0;
+      const total = mrp * qty;
+      const totalCell = row.querySelector('.total-cell');
+      if (totalCell) totalCell.innerText = total.toFixed(2);
+      grandTotal += total;
+      totalQty += qty;
+    });
+    document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+    document.getElementById('total-quantity').innerText = totalQty;
+  }
+  document.querySelectorAll('.mrp-input, .qty-input').forEach(input => {
+    input.addEventListener('input', updateTotals);
+  });
+  window.addEventListener('load', updateTotals);
+</script>
+{% endblock %}

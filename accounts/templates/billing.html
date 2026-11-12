@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% block title %}Billing{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fa;
+  }
+
+  .billing-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border: 2px solid #2A8FF7;
+    max-width: 1000px;
+    margin: 40px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .section-box {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2A8FF7;
+    display: flex;
+    align-items: center;
+  }
+
+  .section-title i {
+    margin-right: 10px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .form-row-split {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .form-half {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    width: 150px;
+    margin-right: 10px;
+    color: #000;
+    white-space: nowrap;
+  }
+
+  .form-group label.required::after {
+    content: ' *';
+    color: red;
+    font-weight: bold;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #2A8FF7;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #2A8FF7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(42, 143, 247, 0.2);
+  }
+
+  .table-wrapper {
+    padding: 0 40px;
+    margin-bottom: 30px;
+  }
+
+  .billing-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #EDFEFA;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #2A8FF7;
+  }
+
+  .billing-table thead {
+    background-color: #2A8FF7;
+    color: white;
+    font-size: 15px;
+  }
+
+  .billing-table th,
+  .billing-table td {
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .total-row {
+    font-weight: bold;
+    font-size: 16px;
+    background: #F4FAFF;
+  }
+
+  .delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .delete-btn:hover {
+    background-color: #c0392b;
+  }
+
+  .generate-btn {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #2A8FF7;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    box-shadow: 0 2px 5px rgba(42, 143, 247, 0.3);
+  }
+
+  .generate-btn:hover {
+    background-color: #0076e2;
+  }
+
+  .success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #28a745;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .form-row-split {
+      flex-direction: column;
+    }
+
+    .form-group {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .form-group label {
+      margin-bottom: 6px;
+    }
+
+    .table-wrapper {
+      padding: 0 10px;
+    }
+  }
+</style>
+
+<div class="billing-container">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="{{ message.tags|default:'success-message' }}">
+        <p>{{ message }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" action="{% url 'generate_invoice' %}" id="invoiceForm">
+    {% csrf_token %}
+
+    <!-- Invoice Section -->
+    <div class="section-box">
+      <div class="section-title"><i class="fas fa-file-invoice"></i> Invoice Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="required">Invoice Date:</label>
+          <input type="date" name="invoice_date" required value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+          <label class="required">Invoice Number:</label>
+          <input type="text" name="invoice_number" required value="{{ next_invoice_number }}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="required">D.L NO:</label>
+          <input type="text" name="dl_no" required pattern="TN-[0-9\-]{5,}" value="TN-14-20-00404">
+        </div>
+        <!-- <div class="form-group">
+          <label class="required">License No:</label>
+          <input type="text" name="license_no" required pattern="[0-9]{6,}" value="892768067">
+        </div> -->
+      </div>
+    </div>
+
+    <!-- From / To Section -->
+    <div class="form-row-split">
+      <div class="form-half section-box">
+        <div class="section-title"><i class="fas fa-user-tie"></i> Bill From</div>
+        <div class="form-group">
+          <label class="required">Name:</label>
+          <input type="text" name="from_name" required value="Kani Medical">
+        </div>
+        <div class="form-group">
+          <label class="required">Phone:</label>
+          <input type="tel" name="from_phone" required pattern="[0-9]{10}" value="7358812618">
+        </div>
+        <div class="form-group">
+          <label class="required">Address:</label>
+          <textarea name="from_address" required rows="4">10/195, Kamarajar Salai,Kurumbalaperi Vilakku, Pavoorchatram,Tenkasi District – 627806</textarea>
+        </div>
+      </div>
+
+      <div class="form-half section-box">
+        <div class="section-title"><i class="fas fa-user"></i> Bill To</div>
+        <div class="form-group">
+          <label class="required">Customer Name:</label>
+          <input type="text" name="to_name" required placeholder="Enter customer name">
+        </div>
+        <div class="form-group">
+          <label class="required">Phone:</label>
+          <input type="tel" name="to_phone" required pattern="[0-9]{10}" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label class="required">Address:</label>
+          <textarea name="to_address" required rows="4" placeholder="Enter customer address"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Table -->
+    <div class="section-title"><i class="fas fa-shopping-cart"></i> Product Summary</div>
+
+    <div class="table-wrapper">
+      <table class="billing-table">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Item Summary</th>
+            <th>Batch No</th>
+            <th>MRP</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if cart %}
+            {% for key, item in cart.items %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.batch }}</td>
+                <td>₹{{ item.mrp }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.subtotal }}</td>
+                <td>
+                  <form method="POST" action="{% url 'remove_from_cart' %}" class="remove-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ key }}">
+                    <button type="submit" class="delete-btn">🗑 Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            <tr class="total-row">
+              <td colspan="4" style="text-align: right;"><strong>Grand Total</strong></td>
+              <td style="border-top: 2px solid #2A8FF7; border-bottom: 2px solid #2A8FF7;">
+                {{ total_quantity }}
+              </td>
+              <td style="border-top: 2px solid #2A8FF7; border-bottom: 2px solid #2A8FF7;">
+                ₹{{ total }}
+              </td>
+              <td></td>
+            </tr>
+            <tr><td colspan="7" style="height: 20px;"></td></tr>
+
+            <tr><td colspan="7" style="height: 30px;"></td></tr>
+
+            <tr>
+              <td colspan="7" style="text-align: center;">
+                <div style="display: inline-block; margin-right: 20px;">
+                  <span style="font-weight: 600; font-size: 16px; color: #333;">Payment Method: Cash</span>
+                </div>
+                
+                <div style="
+                  display: inline-block;
+                  background-color: #9DAAFF;
+                  padding: 10px 30px;
+                  border-radius: 10px;
+                  font-weight: bold;
+                  font-size: 18px;
+                  color: white;
+                ">
+                  Total: ₹{{ total }}
+                </div>
+              </td>
+            </tr>
+
+            <tr><td colspan="7" style="height: 40px;"></td></tr>
+          {% else %}
+            <tr>
+              <td colspan="7" class="empty-cart">
+                <i class="fas fa-shopping-cart fa-2x" style="color: #ddd; margin-bottom: 10px;"></i><br>
+                Your cart is empty. Add products from the products page.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if cart %}
+      <button type="submit" class="generate-btn">
+        <i class="fas fa-file-invoice"></i> Generate Invoice
+      </button>
+    {% endif %}
+  </form>
+</div>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced removal with debugging
+    document.querySelectorAll('form[action*="remove_from_cart"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productIdInput = form.querySelector('input[name="product_id"]');
+            const productId = productIdInput.value;
+            
+            console.log("Attempting to remove product with ID:", productId);
+            
+            if (confirm('Are you sure you want to remove this item?')) {
+                const btn = form.querySelector('button');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('product_id', productId);
+                formData.append('csrfmiddlewaretoken', form.querySelector('[name=csrfmiddlewaretoken]').value);
+                
+                // Send POST request
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Network response was not ok');
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        throw new Error(data.message || 'Removal failed');
+                    }
+                })
+                .catch(error => {
+                    console.error("Removal failed:", error);
+                    alert("Error removing product. Please try again.");
+                    btn.disabled = false;
+                    btn.innerHTML = '🗑 Remove';
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

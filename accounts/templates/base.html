@@ -1,0 +1,162 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Dashboard{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      display: flex;
+      /* background: #EDF4FA; */
+    }
+
+    .sidebar {
+      width: 220px;
+      background: #2A8FF7;
+      color: white;
+      height: 100vh;
+      padding: 0;
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .sidebar-header {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    .sidebar-logo {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+      padding: 8px 20px;
+      margin: 5px 0;
+      width: 100%;
+      font-size: 15px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    /* Active link styling */
+    .sidebar a.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar a.active:after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: white;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .sidebar a img {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      filter: brightness(0) invert(1);
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a:hover {
+      color: black;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+    }
+
+    .sidebar a:hover img {
+      filter: brightness(0) invert(0);
+    }
+
+    .sidebar a:hover i {
+      color: black;
+    }
+
+    .logout-link {
+      margin-top: auto;
+      margin-bottom: 20px;
+      color: #FFEB3B !important;
+    }
+
+    .logout-link i {
+      color: #FFEB3B;
+    }
+
+    .logout-link:hover {
+      color: black !important;
+    }
+
+    .logout-link:hover i {
+      color: black !important;
+    }
+
+    .main {
+      margin-left: 220px;
+      padding: 30px;
+      width: calc(100% - 220px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <img src="{% static 'logo.jpeg' %}" alt="Kani Medicals Logo" class="sidebar-logo">
+  </div>
+  
+  <a href="{% url 'dashboard' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">
+    <img src="{% static 'Overview.png' %}" alt="Overview Icon"> Overview
+  </a>
+  <a href="{% url 'products' %}" class="{% if request.path == '/products/' %}active{% endif %}">
+    <img src="{% static 'Products.png' %}" alt="Products Icon"> Products
+  </a>
+  <a href="{% url 'billing' %}" class="{% if request.path == '/billing/' %}active{% endif %}">
+    <img src="{% static 'Billing.png' %}" alt="Billing Icon"> Billing
+  </a>
+  <a href="{% url 'invoice_list' %}" class="{% if request.path == '/invoices/' or request.path|slice:'0:9' == '/invoice/' %}active{% endif %}">
+    <img src="{% static 'Invoice.png' %}" alt="Invoice Icon"> Invoice
+  </a>
+  <a href="{% url 'logout' %}" class="logout-link">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+</div>
+
+<div class="main">
+  {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

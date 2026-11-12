@@ -1,0 +1,1002 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Products{% endblock %}
+{% load custom_tags %}  
+{% block content %}
+<style>
+  .product-container {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+
+  .top-bar input[type="text"] {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 300px;
+    font-size: 14px;
+  }
+
+  .top-bar button {
+    background-color: #2A8FF7;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .top-bar button:hover {
+    background-color: #0076e2;
+  }
+
+  .product-table-container {
+    margin-top: 40px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    background-color: #EDFEFA;
+    font-size: 14px;
+    border: 1px solid #2A8FF7;
+    border-radius: 12px;
+    border-collapse: collapse;
+  }
+
+  table th,
+  table td {
+    border: 1px solid #2A8FF7;
+    padding: 12px;
+    text-align: center;
+  }
+
+  table thead {
+    background-color: #EDFEFA;
+    color: #2A8FF7;
+    font-weight: bold;
+  }
+
+  .expired-row {
+    background-color: #ffdddd;
+    color: red;
+  }
+
+  .qty-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .qty-box button {
+    padding: 5px 10px;
+    background-color: #2A8FF7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .qty-box input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .cart-form button {
+    background-color: #2A8FF7;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .form-popup {
+    background-color: #EDFEFA;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 40px;
+    display: none;
+    border: 2px solid #2A8FF7;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-popup h3 {
+    margin-top: 0;
+    color: #2A8FF7;
+    border-bottom: 1px solid #2A8FF7;
+    padding-bottom: 10px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .form-grid div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #2A8FF7;
+    width: 100%;
+  }
+
+  .form-grid label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .form-grid label .required {
+    color: red;
+    margin-left: 5px;
+  }
+
+  .submit-btn {
+    background-color: #2A8FF7;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 20px;
+    cursor: pointer;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .submit-btn:hover {
+    background-color: #0076e2;
+  }
+
+  #popup {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #2A8FF7;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    z-index: 1001;
+  }
+
+  .proceed-btn {
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  .proceed-btn button {
+    background-color: #2A8FF7;
+    color: white;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .proceed-btn button:hover {
+    background-color: lightskyblue;
+  }
+
+  .search-box {
+    position: relative;
+    width: 300px;
+  }
+
+  .search-box input[type="text"] {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border-radius: 8px;
+    border: 2px solid #2A8FF7;
+    color: black;
+    font-size: 14px;
+  }
+
+  .search-box input::placeholder {
+    color: black;
+  }
+
+  .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #2A8FF7;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+  }
+
+  .edit-btn {
+    background-color: #2A8FF7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .edit-btn:hover {
+    background-color: #0076e2;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #2A8FF7;
+  }
+</style>
+
+{% now "Y-m-d" as today %}
+<div class="product-container">
+
+  <!-- TOP BAR -->
+  <div id="topBar" class="top-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search">
+      <i class="fas fa-search search-icon"></i>
+    </div>
+    <button id="toggleBtn" onclick="toggleForm()">+ Create New</button>
+  </div>
+
+  <!-- PRODUCT TABLE -->
+<div id="productTableSection" class="product-table-container">
+<table>
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Product Name</th>
+        <th>Batch No</th>
+        <th>Expiry Date</th>
+        <th>Unit Type</th>
+        <th>Price</th>
+        <th>GST %</th>
+        <th>MRP</th>
+        <th>Box stock</th>
+        <th>Strip stock</th>
+        <th>Stock (pieces)</th>
+        <th>Qty</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+        {% if product.expiry_date|stringformat:"s" <= today %}
+          <tr class="expired-row">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ product.name }} <br><small>(Expired)</small></td>
+            <td>{{ product.batch_no }}</td>
+            <td>{{ product.expiry_date|date:"d/m/Y" }}</td>
+            <td>
+              <select class="unit-select" data-id="{{ product.id }}"
+                      data-box-stock="{{ product.box_stock }}"
+                      data-strip-stock="{{ product.strip_stock }}"
+                      data-piece-stock="{{ product.piece_stock }}">
+                <option value="piece"
+                        data-price="{{ product.piece_price }}"
+                        data-available="{{ product.piece_stock }}">
+                  Piece
+                </option>
+                <option value="strip"
+                        data-price="{{ product.strip_price }}"
+                        data-available="{{ product.strip_stock }}">
+                  Strip
+                </option>
+                <option value="box"
+                        data-price="{{ product.box_price }}"
+                        data-available="{{ product.box_stock }}">
+                  Box
+                </option>
+              </select>
+            </td>
+
+            <!-- Dynamic price & MRP -->
+            <td id="price-{{ product.id }}">{{ product.piece_price }}</td>
+            <td id="gst-{{ product.id }}">{{ product.gst_percent }}%</td>
+            <td id="mrp-{{ product.id }}">
+              {{ product.piece_price|floatformat:2|add:"0"|safe }}
+            </td>
+
+            <!-- Stocks -->
+            <td id="box-stock-{{ product.id }}">{{ product.box_stock }}</td>
+            <td id="strip-stock-{{ product.id }}">{{ product.strip_stock }}</td>
+            <td id="stock-{{ product.id }}">
+              {% if product.piece_stock == 0 %}
+                <span style="color: red;">No Stock</span>
+              {% elif product.piece_stock < 3 %}
+                <span style="color: orange;">Low ({{ product.piece_stock }})</span>
+              {% else %}
+                {{ product.piece_stock }}
+              {% endif %}
+            </td>
+
+            <td colspan="6">❌ Cannot add expired product</td>
+            <!-- <td colspan="2">-</td> -->
+          </tr>
+        {% else %}
+          <tr id="product-row-{{ product.id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.batch_no }}</td>
+            <td>{{ product.expiry_date|date:"d/m/Y" }}</td>
+
+            <!-- Unit dropdown (with per-unit price + available stock in data-*) -->
+            <td>
+              <select class="unit-select" data-id="{{ product.id }}"
+                      data-box-stock="{{ product.box_stock }}"
+                      data-strip-stock="{{ product.strip_stock }}"
+                      data-piece-stock="{{ product.piece_stock }}">
+                <option value="piece"
+                        data-price="{{ product.piece_price }}"
+                        data-available="{{ product.piece_stock }}">
+                  Piece
+                </option>
+                <option value="strip"
+                        data-price="{{ product.strip_price }}"
+                        data-available="{{ product.strip_stock }}">
+                  Strip
+                </option>
+                <option value="box"
+                        data-price="{{ product.box_price }}"
+                        data-available="{{ product.box_stock }}">
+                  Box
+                </option>
+              </select>
+            </td>
+
+            <!-- Dynamic price & MRP -->
+            <td id="price-{{ product.id }}">{{ product.piece_price }}</td>
+            <td id="gst-{{ product.id }}">{{ product.gst_percent }}%</td>
+            <td id="mrp-{{ product.id }}">
+              {{ product.piece_price|floatformat:2|add:"0"|safe }}
+            </td>
+
+            <!-- Stocks -->
+            <td id="box-stock-{{ product.id }}">{{ product.box_stock }}</td>
+            <td id="strip-stock-{{ product.id }}">{{ product.strip_stock }}</td>
+            <td id="stock-{{ product.id }}">
+              {% if product.piece_stock == 0 %}
+                <span style="color: red;">No Stock</span>
+              {% elif product.piece_stock < 3 %}
+                <span style="color: orange;">Low ({{ product.piece_stock }})</span>
+              {% else %}
+                {{ product.piece_stock }}
+              {% endif %}
+            </td>
+
+            <!-- Qty (manual input + +/-) -->
+            <td>
+              <div class="qty-box">
+                <button type="button" class="decrement-btn" data-id="{{ product.id }}">-</button>
+                <input type="number" id="qty-{{ product.id }}" value="0" min="0">
+                <button type="button" class="increment-btn" data-id="{{ product.id }}">+</button>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <div class="action-buttons">
+                <form method="POST" action="{% url 'add_to_cart' %}" class="cart-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="product_id" value="{{ product.id }}">
+                  <input type="hidden" id="form-qty-{{ product.id }}" name="quantity" value="0">
+                  <input type="hidden" id="form-unit-{{ product.id }}" name="unit_type" value="piece">
+                  <!-- optional if you want to send these; server recalculates anyway -->
+                  <input type="hidden" id="form-price-{{ product.id }}" name="price" value="{{ product.piece_price }}">
+                  <input type="hidden" id="form-mrp-{{ product.id }}" name="mrp" value="{{ product.mrp }}">
+                  <button type="submit" id="add-btn-{{ product.id }}" disabled><i class="fa fa-shopping-cart"></i></button>
+                </form>
+                <button class="edit-btn" onclick="showEditForm({{ product.id }})"><i class="fa fa-pen"></i></button>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      {% empty %}
+        <tr><td colspan="13">No products found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="proceed-btn">
+    <form method="GET" action="{% url 'billing' %}">
+      <button type="submit">Proceed to Billing</button>
+    </form>
+  </div>
+</div>
+
+
+
+  <!-- CREATE FORM -->
+<div id="createForm" class="form-popup">
+  <h3 style="margin-bottom: 15px;">Add New Product</h3>
+  <button class="close-btn" onclick="toggleForm()">×</button>
+  <form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="create_product" value="1">
+    <div class="form-grid">
+      {% for field in form %}
+      <div>
+        <label for="{{ field.id_for_label }}">
+          <strong>
+            {% if field.name == "box_price" %}
+              Box Price
+            {% elif field.name == "strip_price" %}
+              Strip Price
+            {% elif field.name == "piece_price" %}
+              Piece Price
+            {% else %}
+              {{ field.label }}
+            {% endif %}
+          </strong>
+          {% if field.field.required %}
+            <span class="required">*</span>
+          {% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <small style="color:red;">{{ field.errors|striptags }}</small>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="submit-btn">Submit</button>
+  </form>
+</div>
+
+
+  <!-- EDIT FORM (hidden by default) -->
+  <!-- <div id="editForm" class="form-popup">
+    <h3 style="margin-bottom: 15px;">Edit Product</h3>
+    <button class="close-btn" onclick="hideEditForm()">×</button>
+    <form id="editProductForm" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" id="editProductId">
+      <input type="hidden" name="edit_product" value="1">
+      <div class="form-grid">
+        <div>
+          <label for="editName"><strong>Product Name</strong> <span class="required">*</span></label>
+          <input type="text" id="editName" name="name" required>
+        </div>
+        <div>
+          <label for="editBatchNo"><strong>Batch No</strong> <span class="required">*</span></label>
+          <input type="text" id="editBatchNo" name="batch_no" required>
+        </div>
+        <div>
+          <label for="editExpiryDate"><strong>Expiry Date</strong> <span class="required">*</span></label>
+          <input type="date" id="editExpiryDate" name="expiry_date" required>
+        </div>
+        <div>
+          <label for="editPrice"><strong> Price</strong> <span class="required">*</span></label>
+          <input type="number" step="0.01" id="editPrice" name="price" required>
+        </div>
+        <div>
+          <label for="editGstPercent"><strong>GST %</strong> <span class="required">*</span></label>
+          <select id="editGstPercent" name="gst_percent" required>
+            <option value="0">0%</option>
+            <option value="5">5%</option>
+            <option value="12">12%</option>
+            <option value="18">18%</option>
+            <option value="28">28%</option>
+          </select>
+        </div>
+        <div>
+          <label for="editStock"><strong>Stock</strong> <span class="required">*</span></label>
+          <input type="number" id="editStock" name="stock" required>
+        </div>
+        <div>
+          <label for="editHsn"><strong>HSN Code</strong></label>
+          <input type="text" id="editHsn" name="hsn">
+        </div>
+        <div>
+          <label for="editState"><strong>State</strong></label>
+          <select id="editState" name="state">
+            <option value="TN">Tamil Nadu</option>
+            <option value="KA">Karnataka</option>
+            <option value="KL">Kerala</option>
+            <option value="MH">Maharashtra</option>
+            <option value="DL">Delhi</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Update Product</button>
+    </form>
+  </div> -->
+<div id="editForm" class="form-popup">
+  <h3 style="margin-bottom: 15px;">Edit Product</h3>
+  <button class="close-btn" onclick="hideEditForm()">×</button>
+  <form id="editProductForm" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="product_id" id="editProductId">
+    <input type="hidden" name="edit_product" value="1">
+
+    <div class="form-grid">
+      <div>
+        <label><strong>Product Name</strong></label>
+        <input type="text" id="editName" name="name" required>
+      </div>
+
+      <div>
+        <label><strong>Batch No</strong></label>
+        <input type="text" id="editBatchNo" name="batch_no" required>
+      </div>
+
+      <div>
+        <label><strong>Description</strong></label>
+        <textarea id="editDescription" name="description" rows="2"></textarea>
+      </div>
+
+      <div>
+        <label><strong>Expiry Date</strong></label>
+        <input type="date" id="editExpiryDate" name="expiry_date" required>
+      </div>
+
+      <div>
+        <label><strong>Box Price</strong></label>
+        <input type="number" step="0.01" id="editBoxPrice" name="box_price" required>
+      </div>
+
+      <div>
+        <label><strong>Strip Price</strong></label>
+        <input type="number" step="0.01" id="editStripPrice" name="strip_price">
+      </div>
+
+      <div>
+        <label><strong>Piece Price</strong></label>
+        <input type="number" step="0.01" id="editPiecePrice" name="piece_price">
+      </div>
+
+      <div>
+        <label><strong>Strips per Box</strong></label>
+        <input type="number" id="editStripsPerBox" name="strips_per_box">
+      </div>
+
+      <div>
+        <label><strong>Pieces per Strip</strong></label>
+        <input type="number" id="editPiecesPerStrip" name="pieces_per_strip">
+      </div>
+
+      <div>
+        <label><strong>GST %</strong></label>
+        <select id="editGstPercent" name="gst_percent" required>
+          <option value="0">0%</option>
+          <option value="5">5%</option>
+          <option value="12">12%</option>
+          <option value="18">18%</option>
+          <option value="28">28%</option>
+        </select>
+      </div>
+
+      <div>
+        <label><strong>HSN Code</strong></label>
+        <input type="text" id="editHsn" name="hsn">
+      </div>
+
+      <div>
+        <label><strong>State</strong></label>
+        <select id="editState" name="state">
+          <option value="TN">Tamil Nadu</option>
+          <option value="KA">Karnataka</option>
+          <option value="KL">Kerala</option>
+          <option value="MH">Maharashtra</option>
+          <option value="DL">Delhi</option>
+        </select>
+      </div>
+
+      <div>
+        <label><strong>Box Stock</strong></label>
+        <input type="number" id="editBoxStock" name="box_stock">
+      </div>
+
+      <div>
+        <label><strong>Strip Stock</strong></label>
+        <input type="number" id="editStripStock" name="strip_stock">
+      </div>
+
+      <div>
+        <label><strong>Piece Stock</strong></label>
+        <input type="number" id="editPieceStock" name="piece_stock">
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn">Update Product</button>
+  </form>
+</div>
+
+
+
+  <!-- Overlay for forms -->
+  <div class="overlay" id="overlay" onclick="hideAllForms()"></div>
+</div>
+
+<div id="popup">✔ Product added to cart</div>
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".unit-select").forEach(function (select) {
+    select.addEventListener("change", function () {
+      let productId = this.getAttribute("data-id");
+      let selectedOption = this.options[this.selectedIndex];
+      let basePrice = parseFloat(selectedOption.getAttribute("data-price")) || 0;
+      let gstPercent = parseFloat(document.getElementById("gst-" + productId).innerText.replace("%", "")) || 0;
+
+      // Update price field
+      document.getElementById("price-" + productId).innerText = basePrice.toFixed(2);
+
+      // Calculate MRP with GST
+      let mrp = basePrice + (basePrice * gstPercent / 100);
+      document.getElementById("mrp-" + productId).innerText = mrp.toFixed(2);
+
+      // Update hidden input for form
+      document.getElementById("form-unit-" + productId).value = this.value;
+    });
+  });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Enable manual typing + +/- buttons synced with hidden form quantity
+  document.querySelectorAll("input[id^='qty-']").forEach(function(input){
+    const id = input.id.split("-")[1];
+    const addBtn = document.getElementById("add-btn-" + id);
+    const formQty = document.getElementById("form-qty-" + id);
+    const unitSel = document.querySelector(".unit-select[data-id='" + id + "']");
+
+    const getAvailable = () => {
+      const opt = unitSel.options[unitSel.selectedIndex];
+      return parseInt(opt.getAttribute("data-available")) || 0;
+    };
+
+    const clampAndSync = () => {
+      let q = parseInt(input.value) || 0;
+      const maxAvail = getAvailable();
+      if (q < 0) q = 0;
+      if (q > maxAvail) q = maxAvail;
+      input.value = q;
+      formQty.value = q;
+      addBtn.disabled = (q <= 0);
+    };
+
+    input.addEventListener("input", clampAndSync);
+    clampAndSync();
+
+    // +/- buttons
+    const dec = document.querySelector(".decrement-btn[data-id='" + id + "']");
+    const inc = document.querySelector(".increment-btn[data-id='" + id + "']");
+    inc.addEventListener("click", function(){
+      input.value = (parseInt(input.value) || 0) + 1;
+      clampAndSync();
+    });
+    dec.addEventListener("click", function(){
+      input.value = (parseInt(input.value) || 0) - 1;
+      clampAndSync();
+    });
+  });
+
+  // Unit select → update price, mrp, available, hidden unit field, qty clamp
+  document.querySelectorAll(".unit-select").forEach(function (select) {
+    const id = select.getAttribute("data-id");
+    const priceEl = document.getElementById("price-" + id);
+    const mrpEl   = document.getElementById("mrp-" + id);
+    const gstEl   = document.getElementById("gst-" + id);
+    const qtyInput= document.getElementById("qty-" + id);
+    const formUnit= document.getElementById("form-unit-" + id);
+    const formPrice= document.getElementById("form-price-" + id);
+    const formMrp = document.getElementById("form-mrp-" + id);
+
+    const recalc = () => {
+      const opt = select.options[select.selectedIndex];
+      const basePrice = parseFloat(opt.getAttribute("data-price")) || 0;
+      const gstPercent = parseFloat((gstEl.innerText || "0").replace("%","")) || 0;
+      const mrp = basePrice + (basePrice * gstPercent / 100);
+
+      // Update UI
+      priceEl.innerText = basePrice.toFixed(2);
+      mrpEl.innerText   = mrp.toFixed(2);
+
+      // Hidden inputs
+      formUnit.value  = select.value;
+      formPrice.value = basePrice.toFixed(2);
+      formMrp.value   = mrp.toFixed(2);
+
+      // Clamp qty to available for this unit
+      const available = parseInt(opt.getAttribute("data-available")) || 0;
+      let q = parseInt(qtyInput.value) || 0;
+      if (q > available) {
+        qtyInput.value = available;
+        document.getElementById("form-qty-" + id).value = available;
+      }
+      document.getElementById("add-btn-" + id).disabled = ((parseInt(qtyInput.value)||0) <= 0);
+    };
+
+    select.addEventListener("change", recalc);
+    recalc();
+  });
+});
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const qtyInputs = document.querySelectorAll("input[id^='qty-']");
+
+  qtyInputs.forEach(input => {
+    input.addEventListener("input", () => {
+      const id = input.id.split("-")[1];
+      const formQtyInput = document.getElementById("form-qty-" + id);
+      const addBtn = document.getElementById("add-btn-" + id);
+      const stockDisplay = document.getElementById("stock-" + id);
+      const stockMatch = stockDisplay.innerText.match(/\d+/);
+      let stock = stockMatch ? parseInt(stockMatch[0]) : 0;
+
+      let qty = parseInt(input.value) || 0;
+      if (qty < 0) qty = 0;
+      if (qty > stock) qty = stock;
+
+      input.value = qty;
+      formQtyInput.value = qty;
+
+      if (qty === 0) {
+        addBtn.disabled = true;
+      } else {
+        addBtn.disabled = false;
+      }
+    });
+  });
+});
+
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("createForm").style.display = "none";
+    document.getElementById("editForm").style.display = "none";
+
+    const incrementButtons = document.querySelectorAll(".increment-btn");
+    const decrementButtons = document.querySelectorAll(".decrement-btn");
+
+    incrementButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const maxStock = parseInt(btn.dataset.stock);
+        increment(id, maxStock);
+      });
+    });
+
+    decrementButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        decrement(id);
+      });
+    });
+  });
+
+  function toggleForm() {
+    const form = document.getElementById("createForm");
+    const overlay = document.getElementById("overlay");
+    
+    if (form.style.display === "none" || form.style.display === "") {
+      form.style.display = "block";
+      overlay.style.display = "block";
+    } else {
+      form.style.display = "none";
+      overlay.style.display = "none";
+    }
+  }
+
+  function showEditForm(productId) {
+  fetch(`/get-product/${productId}/`)
+    .then(response => response.json())
+    .then(product => {
+      document.getElementById("editProductId").value = product.id;
+      document.getElementById("editName").value = product.name;
+      document.getElementById("editBatchNo").value = product.batch_no;
+      document.getElementById("editDescription").value = product.description;
+      document.getElementById("editExpiryDate").value = product.expiry_date;
+      document.getElementById("editBoxPrice").value = product.box_price;
+      document.getElementById("editStripPrice").value = product.strip_price;
+      document.getElementById("editPiecePrice").value = product.piece_price;
+      document.getElementById("editStripsPerBox").value = product.strips_per_box;
+      document.getElementById("editPiecesPerStrip").value = product.pieces_per_strip;
+      document.getElementById("editGstPercent").value = product.gst_percent;
+      document.getElementById("editHsn").value = product.hsn;
+      document.getElementById("editState").value = product.state;
+      document.getElementById("editBoxStock").value = product.box_stock;
+      document.getElementById("editStripStock").value = product.strip_stock;
+      document.getElementById("editPieceStock").value = product.piece_stock;
+
+      document.getElementById("editForm").style.display = "block";
+      document.getElementById("overlay").style.display = "block";
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      showPopup("Error loading product data");
+    });
+}
+
+
+  function hideEditForm() {
+    document.getElementById("editForm").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  }
+
+  function hideAllForms() {
+    document.getElementById("createForm").style.display = "none";
+    document.getElementById("editForm").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  }
+
+  function showPopup(message) {
+    const popup = document.getElementById("popup");
+    popup.textContent = message;
+    popup.style.display = "block";
+    setTimeout(() => { popup.style.display = "none"; }, 2000);
+  }
+
+  // Handle edit form submission
+  document.getElementById("editProductForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const productId = formData.get("product_id");
+    
+    fetch('/update-product/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showPopup("✔ Product updated successfully");
+        hideEditForm();
+        // Reload the page to see changes
+        setTimeout(() => { window.location.reload(); }, 1000);
+      } else {
+        showPopup("Error: " + (data.error || "Failed to update product"));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showPopup("Error updating product");
+    });
+  });
+
+  function increment(id, maxStock) {
+    const qtyInput = document.getElementById('qty-' + id);
+    const formQtyInput = document.getElementById('form-qty-' + id);
+    const stockDisplay = document.getElementById('stock-' + id);
+    const addBtn = document.getElementById('add-btn-' + id);
+    let qty = parseInt(qtyInput.value);
+    const stockMatch = stockDisplay.innerText.match(/\d+/);
+    let stock = stockMatch ? parseInt(stockMatch[0]) : 0;
+
+    if (qty < maxStock && stock > 0) {
+      qty++;
+      stock--;
+      qtyInput.value = qty;
+      formQtyInput.value = qty;
+      updateStockDisplay(stockDisplay, stock);
+      addBtn.disabled = false;
+    }
+    if (stock <= 0) addBtn.disabled = true;
+  }
+
+  function decrement(id) {
+    const qtyInput = document.getElementById('qty-' + id);
+    const formQtyInput = document.getElementById('form-qty-' + id);
+    const stockDisplay = document.getElementById('stock-' + id);
+    const addBtn = document.getElementById('add-btn-' + id);
+    let qty = parseInt(qtyInput.value);
+    const stockMatch = stockDisplay.innerText.match(/\d+/);
+    let stock = stockMatch ? parseInt(stockMatch[0]) : 0;
+
+    if (qty > 0) {
+      qty--;
+      stock++;
+      qtyInput.value = qty;
+      formQtyInput.value = qty;
+      updateStockDisplay(stockDisplay, stock);
+    }
+
+    if (qty === 0) addBtn.disabled = true;
+  }
+
+  function updateStockDisplay(el, stock) {
+    if (stock <= 0) {
+      el.innerHTML = '<span style="color: red;">No Stock</span>';
+    } else if (stock < 3) {
+      el.innerHTML = `<span style="color: orange;">Low (${stock})</span>`;
+    } else {
+      el.innerText = stock;
+    }
+  }
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const input = this.value.toLowerCase().trim();
+    const rows = document.querySelectorAll("table tbody tr");
+    let found = false;
+
+    rows.forEach(row => {
+      const nameCell = row.querySelector("td:nth-child(2)");
+      if (nameCell && !row.classList.contains("expired-row")) {
+        const productName = nameCell.textContent.toLowerCase();
+        const match = productName.includes(input);
+        row.style.display = match ? "" : "none";
+        if (match) found = true;
+      } else if (row.classList.contains("expired-row")) {
+        row.style.display = "none";
+      }
+    });
+
+    const noResultRow = document.getElementById("no-result-row");
+    if (!found) {
+      if (!noResultRow) {
+        const newRow = document.createElement("tr");
+        newRow.id = "no-result-row";
+        const td = document.createElement("td");
+        td.colSpan = 10;
+        td.textContent = "No products found.";
+        td.style.color = "red";
+        newRow.appendChild(td);
+        document.querySelector("table tbody").appendChild(newRow);
+      }
+    } else {
+      if (noResultRow) noResultRow.remove();
+    }
+  });
+</script>
+{% endblock %}
